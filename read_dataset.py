@@ -1,3 +1,7 @@
+import pandas as pd
+import random
+import numpy as np
+
 """
 Per come dobbiamo dare i dati alla NN cioè concatenando context e question, per il fatto che i prof vogliono come output un dict {id_question, testo}
 per avere i dati comodi la lista è formata da:
@@ -11,9 +15,10 @@ def read_dataset(path='training_dataset.json', validation_set_perc = 0.0, limit_
         @param validation_set_perc: inserire la percentuale in [0,1] del dataset per la validazione, se 0 non viene creato il validation set
         @param limit_dataset: if necessary to not use all the dataset set a limit of titles to include
   '''
+  dataset = None
+  with open(path) as file:
+    dataset = pd.read_json(file)
 
-  import random
-  import numpy as np
   temp_dataset = []
   training_dataset = []
   validation_dataset = []
