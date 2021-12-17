@@ -1,5 +1,5 @@
 # question-answering
-NLP system to perform question answering
+NLP system to perform question answering exploiting QANet architecture
 
 ## Authors
 In reverse alphabetical order:
