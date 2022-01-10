@@ -13,7 +13,9 @@ def move_answers_position(offsets, answer):
     ans_end = answer[1][index]
     offset = offsets[index]
 
-    for i, of in enumerate(offset):
+    # the search starts after the question, so after the first 102 tag
+    for i in range(offset.index(102), len(offset)):
+      of = offset[i]
       range_offset = list(range(of[0], of[1]+1))
 
       if ans_start in range_offset:
