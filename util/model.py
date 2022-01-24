@@ -1,7 +1,6 @@
 import torch
 from transformers import DistilBertModel
-from torchmetrics import AveragePrecision, F1
-
+from torchmetrics import Accuracy, AveragePrecision, F1
 
 class QA(torch.nn.Module):
 
@@ -80,10 +79,16 @@ def define_metrics(model):
 	f1_score = f1_score.to(model.device)
 	average_precision = AveragePrecision(pos_label=1, num_classes=model.transformers.config.max_position_embeddings)
 	average_precision = average_precision.to(model.device)
+	accuracy = Accuracy(mdmc_average='global', num_classes=model.transformers.config.max_position_embeddings)
+	accuracy = accuracy.to(model.device)
+
+	## TODO
+	## IoU (Intersection over Union)
 
 	metrics = {
     	'F1' : f1_score,
-    	'Precision' : average_precision
+    	'Precision' : average_precision,
+    	'Accuracy' : accuracy
 	}
 
 	return metrics
@@ -109,6 +114,7 @@ def evaluate(model, inputs, targets, metrics):
 
     f1_score = metrics['F1']
     average_precision = metrics['Precision']
+    accuracy = metrics['Accuracy']
 
     # Get F1 scores
     f1_start = f1_score(start_out, start_logits)
@@ -122,7 +128,13 @@ def evaluate(model, inputs, targets, metrics):
     avg = (avg_start + avg_end)/2
     avg = avg.to('cpu')
 
+    # Get Accuracy scores
+    acc_start = accuracy(start_out, torch.argmax(start_logits, axis=1))
+    acc_end = accuracy(end_out, torch.argmax(end_logits, axis=1))
+    acc = (acc_start + acc_end)/2
+    acc = acc.to('cpu')
+
     print('Evaluation completed.')
-    print(f'F1: {f1}, Precision: {avg}')
+    print(f'F1: {f1}, Precision: {avg}, Accuracy: {acc}')
                 
-    return f1, avg
+    return f1, avg, acc
