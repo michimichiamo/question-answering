@@ -123,6 +123,6 @@ def evaluate(model, inputs, targets, metrics):
     avg = avg.to('cpu')
 
     print('Evaluation completed.')
-    print(f'F1: {f1}, Precision: {avg_prec}')
+    print(f'F1: {f1}, Precision: {avg}')
                 
     return f1, avg
