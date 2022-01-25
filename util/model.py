@@ -48,8 +48,9 @@ class QA(torch.nn.Module):
 
 class Dataset(torch.utils.data.Dataset):
     'Characterizes a dataset for PyTorch'
-    def __init__(self, input_ids, attention_masks, answer_starts, answer_ends):
+    def __init__(self, ids, input_ids, attention_masks, answer_starts, answer_ends):
         'Initialization'
+        self.ids = ids
         self.input_ids = input_ids
         self.attention_masks = attention_masks
         self.answer_starts = answer_starts
@@ -62,13 +63,14 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         'Generates one sample of data'
         # Select sample
+        ID = self.ids[index]
         input_id = self.input_ids[index]
         attention_mask = self.attention_masks[index]
         answer_start = self.answer_starts[index]
         answer_end = self.answer_ends[index]
 
         # Pack input and output
-        X = (input_id, attention_mask)
+        X = (ID, input_id, attention_mask)
         y = (answer_start, answer_end)
 
         return X, y
@@ -111,40 +113,40 @@ def evaluate(model, inputs, targets, metrics):
     # Set evaluation mode
     model.eval()
     # Obtain predictions
-    start_preds, end_preds = model.forward(inputs)
+    start_model, end_model = model.forward(inputs)
     # Unpack targets and send to device
-    start_logits, end_logits = targets
-    start_logits = start_logits.to(model.device)
-    end_logits = end_logits.to(model.device)
+    start_target, end_target = targets
+    start_target = start_target.to(model.device)
+    end_target = end_target.to(model.device)
     
     # Extract IntTensors for predictions
-    start_out, end_out = torch.zeros_like(start_preds, dtype=torch.int16), torch.zeros_like(end_preds, dtype=torch.int16)
-    start_out[torch.tensor(range(start_preds.size()[0])), torch.argmax(start_preds, axis=1)] = 1
-    end_out[torch.tensor(range(end_preds.size()[0])), torch.argmax(end_preds, axis=1)] = 1
+    start_preds, end_preds = torch.zeros_like(start_model, dtype=torch.int16), torch.zeros_like(end_model, dtype=torch.int16)
+    start_preds[torch.tensor(range(start_model.size()[0])), torch.argmax(start_model, axis=1)] = 1
+    end_preds[torch.tensor(range(end_model.size()[0])), torch.argmax(end_model, axis=1)] = 1
 
     # Send predictions to device
-    start_out = start_out.to(model.device)
-    end_out = end_out.to(model.device)
+    start_preds = start_preds.to(model.device)
+    end_preds = end_preds.to(model.device)
 
     f1_score = metrics['F1']
     average_precision = metrics['Precision']
     accuracy = metrics['Accuracy']
 
     # Get F1 scores
-    f1_start = f1_score(start_out, start_logits)
-    f1_end = f1_score(end_out, end_logits)
+    f1_start = f1_score(start_preds, start_target)
+    f1_end = f1_score(end_preds, end_target)
     f1 = (f1_start + f1_end)/2
     f1 = f1.to('cpu')
     
     # Get Average Precision scores
-    avg_start = average_precision(start_out, torch.argmax(start_logits, axis=1))
-    avg_end = average_precision(end_out, torch.argmax(end_logits, axis=1))
+    avg_start = average_precision(start_preds, start_target)
+    avg_end = average_precision(end_preds, end_target)
     avg = (avg_start + avg_end)/2
     avg = avg.to('cpu')
 
     # Get Accuracy scores
-    acc_start = accuracy(start_out, torch.argmax(start_logits, axis=1))
-    acc_end = accuracy(end_out, torch.argmax(end_logits, axis=1))
+    acc_start = accuracy(start_preds, start_target)
+    acc_end = accuracy(end_preds, end_target)
     acc = (acc_start + acc_end)/2
     acc = acc.to('cpu')
 
