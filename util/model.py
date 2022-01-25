@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from transformers import DistilBertModel
 from torchmetrics import Accuracy, AveragePrecision, F1
@@ -71,6 +72,19 @@ class Dataset(torch.utils.data.Dataset):
         y = (answer_start, answer_end)
 
         return X, y
+
+def read_npz(path='./', split=None):
+	assert split in ['train', 'val']
+	filename = path+'data/tokenized/'+split+'.npz'
+	data = np.load(filename)
+
+	ids = data['id']
+	input_ids = data['input_ids']
+	attention_mask = data['attention_mask']
+	answer_start = data['answer_start']
+	answer_end = data['answer_end']
+
+	return ids, input_ids, attention_mask, answer_start, answer_end        
 
 
 def define_metrics(model):
