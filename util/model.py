@@ -113,16 +113,16 @@ def evaluate(model, inputs, targets, metrics):
     # Set evaluation mode
     model.eval()
     # Obtain predictions
-    start_model, end_model = model.forward(inputs)
+    start_preds, end_preds = model.forward(inputs)
     # Unpack targets and send to device
     start_target, end_target = targets
     start_target = start_target.to(model.device)
     end_target = end_target.to(model.device)
     
-    # Extract IntTensors for predictions
-    start_preds, end_preds = torch.zeros_like(start_model, dtype=torch.int16), torch.zeros_like(end_model, dtype=torch.int16)
-    start_preds[torch.tensor(range(start_model.size()[0])), torch.argmax(start_model, axis=1)] = 1
-    end_preds[torch.tensor(range(end_model.size()[0])), torch.argmax(end_model, axis=1)] = 1
+#    # Extract IntTensors for predictions
+#    start_preds, end_preds = torch.zeros_like(start_model, dtype=torch.int16), torch.zeros_like(end_model, dtype=torch.int16)
+#    start_preds[torch.tensor(range(start_model.size()[0])), torch.argmax(start_model, axis=1)] = 1
+#    end_preds[torch.tensor(range(end_model.size()[0])), torch.argmax(end_model, axis=1)] = 1
 
     # Send predictions to device
     start_preds = start_preds.to(model.device)
