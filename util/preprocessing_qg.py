@@ -85,28 +85,29 @@ def tokenize(df, max_length=512, doc_stride=256, verbose=1):
 
 def fix_answers(df):
 	def helper(row):
-		# Extract context
-		context = row['offset_mapping']
-		# Extract answer
-		answer_start = row['answer_start']
-		answer_end = row['answer_end']
-		# Iterate over contexts to assign answer's word position
-		start_found, end_found = False, False
-		for idx, (start, end) in enumerate(context):
-			context_range = range(start, end+1)
-		
-			if start_found and end_found:
-				break
-			elif (not start_found) and (answer_start in context_range):
-				start_found = True
-				answer_start = idx
-			elif (not end_found) and (answer_end in context_range):
-				end_found = True
-				answer_end = idx
-			    
-		if not(start_found and end_found):
-			answer_start, answer_end = (0,0)
-		
-		return answer_start, answer_end
+	    # Extract context
+	    context = row['offset_mapping']
+	    # Extract answer
+	    answer_start = row['answer_start']
+	    answer_end = row['answer_end']
+	    # Iterate over contexts to assign answer's word position
+	    start_found, end_found = False, False
+	    for idx, (start, end) in enumerate(context):
+	        context_range = range(start, end+1)
+	    
+	        if start_found and end_found:
+	            break
+	        else:
+	            if (not start_found) and (answer_start in context_range):
+	                start_found = True
+	                answer_start = idx
+	            if (not end_found) and (answer_end in context_range):
+	                end_found = True
+	                answer_end = idx
+	            
+	    if not(start_found and end_found):
+	        answer_start, answer_end = (0,0)
+	    
+	    return answer_start, answer_end
 
 	df[['answer_start','answer_end']] = df.apply(helper, axis=1, result_type="expand")

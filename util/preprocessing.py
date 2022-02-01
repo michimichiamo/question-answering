@@ -128,12 +128,13 @@ def fix_answers(df):
 			if start_found and end_found:
 				break
 			    
-			elif (not start_found) and (answer_start in context_range):
-				start_found = True
-				answer_start = idx + question_length
-			elif (not end_found) and (answer_end in context_range):
-				end_found = True
-				answer_end = idx + question_length
+			else:
+				if (not start_found) and (answer_start in context_range):
+					start_found = True
+					answer_start = idx + question_length
+				if (not end_found) and (answer_end in context_range):
+					end_found = True
+					answer_end = idx + question_length
 			    
 		if not(start_found and end_found):
 			answer_start, answer_end = (0,0)
