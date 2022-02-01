@@ -95,7 +95,7 @@ def read_npz(path='./data/tokenized/', split=None, task='QA'):
         context_attention_mask = data['context_attention_mask']
         question_input_ids = data['question_input_ids']
 
-        return ids, context_input_ids, context_attention_mask, question_input_idss
+        return ids, context_input_ids, context_attention_mask, question_input_ids
 
     else:
         print('Task not recognized')
