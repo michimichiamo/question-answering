@@ -90,12 +90,13 @@ def read_npz(path='./data/tokenized/', split=None, task='QA'):
 	   return ids, input_ids, attention_mask, answer_start, answer_end        
 
     elif task == 'QG':
+        ids = data['id']
         context_input_ids = data['context_input_ids']
         context_attention_mask = data['context_attention_mask']
         question_input_ids = data['question_input_ids']
 
-        return context_input_ids, context_attention_mask, question_input_ids
-        
+        return ids, context_input_ids, context_attention_mask, question_input_idss
+
     else:
         print('Task not recognized')
         raise NotImplementedError
