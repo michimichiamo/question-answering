@@ -75,9 +75,9 @@ class Dataset(torch.utils.data.Dataset):
 
         return X, y
 
-def read_npz(path='./', split=None):
+def read_npz(path='./data/tokenized/', split=None):
 	assert split in ['train', 'val']
-	filename = path+'data/tokenized/'+split+'.npz'
+	filename = path+split+'.npz'
 	data = np.load(filename)
 
 	ids = data['id']
