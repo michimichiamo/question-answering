@@ -75,18 +75,30 @@ class Dataset(torch.utils.data.Dataset):
 
         return X, y
 
-def read_npz(path='./data/tokenized/', split=None):
+def read_npz(path='./data/tokenized/', split=None, task='QA'):
 	assert split in ['train', 'val']
 	filename = path+split+'.npz'
 	data = np.load(filename)
 
-	ids = data['id']
-	input_ids = data['input_ids']
-	attention_mask = data['attention_mask']
-	answer_start = data['answer_start']
-	answer_end = data['answer_end']
+    if task == 'QA':
+	   ids = data['id']
+	   input_ids = data['input_ids']
+	   attention_mask = data['attention_mask']
+	   answer_start = data['answer_start']
+	   answer_end = data['answer_end']
+    
+	   return ids, input_ids, attention_mask, answer_start, answer_end        
 
-	return ids, input_ids, attention_mask, answer_start, answer_end        
+    elif task == 'QG':
+        context_input_ids = data['context_input_ids']
+        context_attention_mask = data['context_attention_mask']
+        question_input_ids = data['question_input_ids']
+
+        return context_input_ids, context_attention_mask, question_input_ids
+        
+    else:
+        print('Task not recognized')
+        raise NotImplementedError
 
 
 def define_metrics(model):
