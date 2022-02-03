@@ -14,30 +14,16 @@ def read_from_json(file_path='./SQUAD MATERIAL/training_set.json'):
     
     # Load data into DataFrame
     df = pd.json_normalize(data['data'],
-                           record_path=['paragraphs', 'qas', 'answers'],
+                           record_path=['paragraphs', 'qas'],
                            meta=['title',
-                                ['paragraphs', 'context'],
-                                ['paragraphs', 'qas', 'question'],
-                                ['paragraphs', 'qas', 'id']]
+                                ['paragraphs', 'context']]
                           )
     # Rename columns
     mapper = {
-        'paragraphs.context' : 'context',
-        'paragraphs.qas.question' : 'question',
-        'paragraphs.qas.id' : 'id',
-        'text' : 'answer_text'
+        'paragraphs.context' : 'context'
     }
     
     df.rename(mapper, axis=1, inplace=True)
-    
-    # Compute answer_end
-    df['answer_end'] = df.apply(lambda x: x['answer_start']+len(x['answer_text']), axis=1)
-    
-    # Check consistency
-    assert np.equal(
-        df.apply(lambda x: x['context'][x['answer_start']:x['answer_end']], axis=1),
-        df['answer_text']
-    ).all()
     
     # Reorganize columns
     df = df[['id', 'title', 'context', 'question']][:100]
@@ -133,24 +119,29 @@ def create_dataloader(df):
 
 	return dataloader
 
-def compute_answers(model, loader, tokenizer):
-
+def compute_answers(model, loader, tokenizer, verbose=1):
+	if verbose > 0:
+		print("Computing predictions...")
 	out = {}
 
-	for i, X in enumerate(loader):
+	for index, X in enumerate(loader):
 		# Unpack the input
 		ID, input_id, attention_mask = X
+		ID = ID[0]
 
 		# Perform inference step
 		start_outputs, end_outputs = model.forward((input_id, attention_mask))
-		start_predictions = torch.argmax(start_outputs, axis=1)
-		end_predictions = torch.argmax(end_outputs, axis=1)
+		start_pred = int(torch.argmax(start_outputs, axis=1).detach().numpy().astype('int32'))
+		end_pred = int(torch.argmax(end_outputs, axis=1).detach().numpy().astype('int32'))
+		if (start_pred == 0 and end_pred== 0):
+			continue
 	
 		# Extract answer from context
-		out[ID[index]] = tokenizer.decode(input_id[index][start:end+1])
+		context = input_id.detach().numpy().reshape(-1,)
+		out[ID] = tokenizer.decode(context[start_pred:end_pred+1])
 
 		# Size limit
-		if i > 4:
+		if index > 10:
 			break
 	
 	return out
@@ -174,15 +165,15 @@ if __name__ == '__main__':
 	loader = create_dataloader(df)
 
 	# Load model weights
+	model_path = './data/model/best_model'
 	model = QA()
-	model.dense.load_state_dict(torch.load(model_path))
+	model.dense.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 
 	# Extract answers
-	model_path = './data/model/best_model'
 	out = compute_answers(model, loader, tokenizer)
 
 	with open('predictions.txt', 'w') as f:
-		print(out, file=f)
+		print(json.dumps(out), file=f)
 
 
 
