@@ -75,7 +75,7 @@ class Dataset(torch.utils.data.Dataset):
 
         return X, y
 
-def read_npz(path='./data/tokenized/', split=None, task='QA'):
+def read_npz(path='./data/tokenized/', split=None, task='QA', return_qam=False):
     assert split in ['train', 'val']
     filename = path+split+'.npz'
     data = np.load(filename)
@@ -94,7 +94,11 @@ def read_npz(path='./data/tokenized/', split=None, task='QA'):
         context_input_ids = data['context_input_ids']
         context_attention_mask = data['context_attention_mask']
         question_input_ids = data['question_input_ids']
+        question_attention_mask = data['question_attention_mask']
 
+        # Return Question Attention mask, if required
+        if return_qam:
+            return ids, context_input_ids, context_attention_mask, question_input_ids, question_attention_mask
         return ids, context_input_ids, context_attention_mask, question_input_ids
 
     else:
