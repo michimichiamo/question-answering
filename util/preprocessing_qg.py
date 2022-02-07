@@ -13,7 +13,8 @@ def tokenize(df, max_length=512, doc_stride=256, verbose=1):
 	ids = df['id'].to_numpy()
 	questions = df['question'].to_list()
 	contexts = df['context'].to_list()
-	answers = np.array(list(zip(df['answer_start'].to_list(), df['answer_end'].to_list())))
+	answer_texts = df['answer_text'].to_list()
+	answer_indices = np.array(list(zip(df['answer_start'].to_list(), df['answer_end'].to_list())))
 	
 	del df
 
@@ -21,7 +22,7 @@ def tokenize(df, max_length=512, doc_stride=256, verbose=1):
 		print('Original sample:')
 		print(f'question: {questions[0]}')
 		print(f'context: {contexts[0]}')
-		print(f'answer: {answers[0]}')
+		print(f'answer: {answer_indices[0]}')
 
 
 	## Load tokenizer
@@ -43,6 +44,7 @@ def tokenize(df, max_length=512, doc_stride=256, verbose=1):
     )
 
 	tokenized_contexts = tokenizer(
+		answer_texts,
 		contexts,
 		max_length=max_length,
 		truncation=True,
@@ -74,7 +76,7 @@ def tokenize(df, max_length=512, doc_stride=256, verbose=1):
 	df['question_input_ids'] = [list(item) for item in np.array(tokenized_questions['input_ids'])[df['overflow_to_sample_mapping'].values]]
 	df['question_attention_mask'] = [list(item) for item in np.array(tokenized_questions['attention_mask'])[df['overflow_to_sample_mapping'].values]]
 	# Store original answers (to be fixed), indexing on mapping
-	df[['answer_start','answer_end']] = answers[df['overflow_to_sample_mapping'].values]
+	df[['answer_start','answer_end']] = answer_indices[df['overflow_to_sample_mapping'].values]
 	df['id'] = ids[df['overflow_to_sample_mapping'].values]
 
 	if verbose>0:
