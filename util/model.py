@@ -110,10 +110,6 @@ def define_metrics(model):
     # Define scores and send to device
     f1_score = F1(num_classes=model.transformers.config.max_position_embeddings, mdmc_average='global')
     f1_score = f1_score.to(model.device)
-    average_precision = AveragePrecision(pos_label=1, num_classes=model.transformers.config.max_position_embeddings)
-    average_precision = average_precision.to(model.device)
-    accuracy = Accuracy(mdmc_average='global', num_classes=model.transformers.config.max_position_embeddings)
-    accuracy = accuracy.to(model.device)
 
     def exact_match(predictions, targets):
     	sum_exact = 0
@@ -127,9 +123,7 @@ def define_metrics(model):
 
     metrics = {
     	'F1' : f1_score,
-    	'Precision' : average_precision,
-    	'Accuracy' : accuracy,
-      'ExactMatch': exact_match
+        'ExactMatch': exact_match
     }
 
     return metrics
@@ -154,8 +148,6 @@ def evaluate(model, inputs, targets, metrics):
     end_preds = end_preds.to(model.device)
 
     f1_score = metrics['F1']
-    average_precision = metrics['Precision']
-    accuracy = metrics['Accuracy']
     exact_match = metrics['ExactMatch']
 
     # Get F1 scores
@@ -164,19 +156,7 @@ def evaluate(model, inputs, targets, metrics):
     f1 = (f1_start + f1_end)/2
     f1 = f1.to('cpu')
 
-    # Get Average Precision scores
-    avg_start = average_precision(start_preds, start_target)
-    avg_end = average_precision(end_preds, end_target)
-    avg = (avg_start + avg_end)/2
-    avg = avg.to('cpu')
-
-    # Get Accuracy scores
-    acc_start = accuracy(start_preds, start_target)
-    acc_end = accuracy(end_preds, end_target)
-    acc = (acc_start + acc_end)/2
-    acc = acc.to('cpu')
-
-    # Get Accuracy scores
+    # Get Exact Match scores
     em_start = exact_match(start_preds, start_target)
     em_end = exact_match(end_preds, end_target)
     em = (em_start + em_end)/2
@@ -184,4 +164,4 @@ def evaluate(model, inputs, targets, metrics):
     print('Evaluation completed.')
     print(f'F1: {f1}, Precision: {avg}, Accuracy: {acc}, Exact Match: {em}')
 
-    return f1, avg, acc
+    return f1, em
