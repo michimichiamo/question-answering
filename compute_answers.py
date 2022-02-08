@@ -139,10 +139,6 @@ def compute_answers(model, loader, tokenizer, verbose=1):
 		# Extract answer from context
 		context = input_id.detach().numpy().reshape(-1,)
 		out[ID] = tokenizer.decode(context[start_pred:end_pred+1])
-
-		# Size limit
-		if index > 10:
-			break
 	
 	return out
 
