@@ -116,14 +116,14 @@ def define_metrics(model):
     	for index, (p, t) in enumerate(zip(predictions, targets)):
     		if torch.equal(torch.argmax(p), torch.argmax(t)):
     			sum_exact += 1
-    	return sum_exact/index
+    	return sum_exact/predictions.size(dim=0)
 
     ## TODO
     ## IoU (Intersection over Union)
 
     metrics = {
     	'F1' : f1_score,
-        'ExactMatch': exact_match
+      'ExactMatch': exact_match
     }
 
     return metrics
